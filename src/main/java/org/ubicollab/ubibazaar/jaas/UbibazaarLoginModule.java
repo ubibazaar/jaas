@@ -38,10 +38,19 @@ public class UbibazaarLoginModule extends AppservPasswordLoginModule {
 
     UbibazaarRealm realm = (UbibazaarRealm) getCurrentRealm();
 
-    // authenticate user
-    if (!doAuthentication(username, password, realm)) {
-      // Login failed
-      throw new LoginException("UbibazaarLoginModule failed authentication for " + username);
+    // if username looks like manager id
+    if (realm.isManager(username)) {
+      // authenticate manager
+      if (!doManagerAuthentication(username, password, realm)) {
+        // Login failed
+        throw new LoginException("UbibazaarLoginModule failed authentication for manager " + username);
+      }
+    } else {
+      // authenticate user
+      if (!doUserAuthentication(username, password, realm)) {
+        // Login failed
+        throw new LoginException("UbibazaarLoginModule failed authentication for " + username);
+      }
     }
 
     // authentication successful
@@ -64,11 +73,11 @@ public class UbibazaarLoginModule extends AppservPasswordLoginModule {
       groupList.add((String) groupEnumeration.nextElement());
 
     String[] groupArray = groupList.toArray(new String[groupList.size()]);
-
+    
     commitUserAuthentication(groupArray);
   }
 
-  private boolean doAuthentication(String username, String candidate, UbibazaarRealm realm) {
+  private boolean doUserAuthentication(String username, String candidate, UbibazaarRealm realm) {
     String sql = "select u.password from user u where u.username = ? ";
 
     try (Connection conn = realm.getConnection();
@@ -82,6 +91,29 @@ public class UbibazaarLoginModule extends AppservPasswordLoginModule {
           return BCrypt.checkpw(candidate, hashed);
         } else {
           // no such user
+          return false;
+        }
+      }
+    } catch (SQLException e) {
+      e.printStackTrace();
+      return false;
+    }
+  }
+
+  private boolean doManagerAuthentication(String id, String candidateKey, UbibazaarRealm realm) {
+    String sql = "select m.key from manager m where m.id = ? ";
+
+    try (Connection conn = realm.getConnection();
+        PreparedStatement ps = conn.prepareStatement(sql)) {
+      ps.setString(1, id);
+      ps.execute();
+
+      try (ResultSet rs = ps.getResultSet()) {
+        if (rs.next()) {
+          String storedKey = rs.getString("key");
+          return candidateKey.equals(storedKey);
+        } else {
+          // no such manager
           return false;
         }
       }

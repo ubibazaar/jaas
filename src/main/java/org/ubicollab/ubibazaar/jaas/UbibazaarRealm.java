@@ -50,6 +50,10 @@ public class UbibazaarRealm extends AppservRealm {
   public Enumeration<String> getGroupNames(String username)
       throws InvalidOperationException, NoSuchUserException {
 
+    if (isManager(username)) {
+      return Collections.enumeration(Collections.singletonList("manager"));
+    }
+
     String sql = ""
         + "select ug.group_name "
         + "from user u "
@@ -79,6 +83,10 @@ public class UbibazaarRealm extends AppservRealm {
       e.printStackTrace();
       return null;
     }
+  }
+
+  public boolean isManager(String username) {
+    return username.matches("^[0-91-f]{32}$");
   }
 
   public Connection getConnection() throws SQLException {
