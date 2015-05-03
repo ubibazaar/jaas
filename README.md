@@ -5,7 +5,7 @@ For authentication to work on deployed API, you need a new realm type to be adde
 
 1. First of all, locate your glassfish installation and open directory ``{glassfish}/domains/domain1``. We will call this one ``{domain-dir}`` for the purpose of this installation guide.
 
-2. Copy ``ubibazaar-jaas-0.1.jar`` to ``{domain-dir}/lib``
+2. Copy ``ubibazaar-jaas-0.2.jar`` to ``{domain-dir}/lib``
 
 3. To do this, open ``domain.xml`` configuration file, usually found in ``{domain-dir}/config``. Locate the other auth-realms in the file and add this one along:
   ```xml
